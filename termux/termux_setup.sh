@@ -15,6 +15,7 @@
 #        - Changes for (20231224)  - support to restore gnupg files even if termux is fresh.
 #        - Changes for (20231225)  - separately back up and restore ssh and gpg keys.
 #	 - Changes for (20250606)  - introduce email and username validation. Also, improved overall script.
+#	 - Changes for (20250701)  - set up gh for login into user's GitHub account and nano as a default editor for git.
 #
 # *******************************************************************************
 
@@ -62,9 +63,9 @@ check_inputs() {
   if [ "$input" = 'y' ] || [ "$input" = 'Y' ]; then
       echo "-- Enter name of the package you want to install:";
       read package_name;
-      extra_packages="vim $package_name";
+      extra_packages="$package_name";
   else
-      extra_packages="vim";
+      extra_packages="gh";
   fi
 }
 
@@ -115,7 +116,7 @@ generate_a_gpg_key() {
 }
 
 # configure git for an SSH key and, a GPG key
-config_git_and_gpg_key() {
+config_git_for_gpg_key() {
   echo "---------------------------------------";
   echo "-- Configuring git for your GPG key ...";
   echo "---------------------------------------";
@@ -125,6 +126,16 @@ config_git_and_gpg_key() {
   [ -f ~/.bashrc ] || touch ~/.bashrc && echo -e '# Set `GPG_TTY` for GPG (GNU Privacy Guard) passphrase handling\nexport GPG_TTY=$(tty)' >> ~/.bashrc;
   source ~/.bashrc;
   echo "-- Git configuration completed. Additionally, GPG_TTY has been configured for seamless usage of GPG keys.";
+}
+
+# set `nano` as a default editor for git
+config_editor() {
+  git config --global core.editor "nano"
+}
+
+# login to user's GitHub account
+config_gh() {
+  gh auth login;
 }
 
 # show an SSH and a GPG public keys for adding them to GitHub account
@@ -230,7 +241,7 @@ restore_ssh_key() {
 
 # do all the work!
 WorkNow() {
-    local SCRIPT_VERSION="20250606";
+    local SCRIPT_VERSION="20250701";
     local START=$(date);
     local STOP=$(date);
     echo "$0, v$SCRIPT_VERSION";
@@ -268,9 +279,11 @@ WorkNow() {
             setup_repo;
             update_environment;
             install_packages;
+            config_gh;
             generate_an_ssh_key;
             generate_a_gpg_key;
-            config_git_and_gpg_key;
+            config_git_for_gpg_key;
+            config_editor;
             show_ssh_and_gpg_public_keys;
             echo "-- Now, you can copy your SSH as well as GPG public keys and, add them to your GitHub's account.";
             ;;
