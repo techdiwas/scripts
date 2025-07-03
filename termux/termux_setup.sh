@@ -32,7 +32,7 @@ setup_storage() {
 
 
 # change termux package repository
-change_repo() {
+setup_repo() {
     termux-change-repo;
 }
 
@@ -63,7 +63,7 @@ check_inputs() {
   if [ "$input" = 'y' ] || [ "$input" = 'Y' ]; then
       echo "-- Enter name of the package you want to install:";
       read package_name;
-      extra_packages="$package_name";
+      extra_packages="$package_name gh";
   else
       extra_packages="gh";
   fi
@@ -266,7 +266,9 @@ WorkNow() {
             ;;
         "rg")
             restore_gpg_key;
-            config_git_and_gpg_key;
+            config_git_for_gpg_key;
+	    config_editor;
+	    config_gh;
             ;;
         "s")
             setup_storage;
