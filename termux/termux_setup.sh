@@ -16,6 +16,7 @@
 #        - Changes for (20231225)  - separately back up and restore ssh and gpg keys.
 #	 - Changes for (20250606)  - introduce email and username validation. Also, improved overall script.
 #	 - Changes for (20250701)  - set up gh for login into user's GitHub account and nano as a default editor for git.
+#        - Changes for (20250705)  - auto copy required files from internal storage for restoring purposes.
 #
 # *******************************************************************************
 
@@ -198,9 +199,23 @@ restore_gpg_key() {
     echo "-- Installing GNU Privacy Guard (gnupg)...";
     pkg install gnupg;
   fi
-  gpg --import ~/id_gpg_public;
-  gpg --import ~/id_gpg_private;
-  gpg --import ~/gpg_ownertrust;
+
+  # assume files are in this dir. So copy them.
+  int_storage=storage/shared/Downloads;
+  if [ -f $int_storage/id_gpg_public ] && [ -f $int_storage/id_gpg_private ] && [ -f $int_storage/gpg_ownertrust ]; then
+      mv $int_storage/id_gpg_public $int_storage/id_gpg_private $int_storage/gpg_ownertrust $HOME;
+      echo "-- Files moved.";
+  else
+      echo "-- No files found in $int_storage.";
+
+  if [ -f $HOME/id_gpg_public ] && [ -f $HOME/id_gpg_private ] && [ -f $HOME/gpg_ownertrust ]; then
+      gpg --import ~/id_gpg_public;
+      gpg --import ~/id_gpg_private;
+      gpg --import ~/gpg_ownertrust;
+  else
+     echo "-- No files exists in $HOME to restore.";
+     exit 1;
+
   gpg --list-secret-keys --keyid-format=long;
   echo "-- Enter GPG key ID:";
   read gpg_key_id;
@@ -223,6 +238,19 @@ restore_ssh_key() {
     echo "-- Installing OpenSSH (Open Secure Shell)...";
     pkg install openssh;
   fi
+
+  # assume files are in this dir. So copy them.
+  int_storage=storage/shared/Downloads;
+  if [ -f $int_storage/id_rsa ] && [ -f $int_storage/id_rsa.pub ]; then
+      mv $int_storage/id_rsa $int_storage/id_rsa.pub $HOME;
+      echo "-- Files moved.";
+  elif [ -f $int_storage/id_ed25519 ] && [ -f $int_storage/id_ed25519.pub ]; then
+      mv $int_storage/id_ed25519 $int_storage/id_ed25519.pub $HOME;
+      echo "-- Files moved.";
+  else
+      echo "-- No files found in $int_storage.";
+      exit 1;
+
   if [ -f $HOME/id_rsa ] && [ -f $HOME/id_rsa.pub ]; then
       mv $HOME/id_rsa $HOME/id_rsa.pub $HOME/.ssh;
       echo "-- SSH key restored.";
