@@ -71,7 +71,7 @@ check_inputs() {
 
 # update Termux's environment
 update_environment() {
-  pkg update && pkg upgrade;
+  pkg update && pkg upgrade -y;
 }
 
 # install required packages
@@ -79,7 +79,7 @@ install_packages() {
   echo "-----------------------------------";
   echo "-- Installing required packages ...";
   echo "-----------------------------------";
-  pkg install git openssh gnupg $extra_packages;
+  pkg install git openssh gnupg $extra_packages -y;
   echo "-- Required packages has been installed.";
 }
 
