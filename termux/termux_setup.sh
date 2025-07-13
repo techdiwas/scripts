@@ -122,8 +122,16 @@ config_git_for_gpg_key() {
   echo "---------------------------------------";
   git config --global user.email "$user_email";
   git config --global user.name "$username";
-  # add GPG key to your `.bashrc` startup file
-  [ -f ~/.bashrc ] || touch ~/.bashrc && echo -e '# Set `GPG_TTY` for GPG (GNU Privacy Guard) passphrase handling\nexport GPG_TTY=$(tty)' >> ~/.bashrc;
+
+  # set GPG_TTY environment variable to your `.bashrc` startup file
+  [ -f ~/.bashrc ] || touch ~/.bashrc;
+  # set GPG_TTY environment variable only if it’s not already there
+  if ! grep -qxF 'export GPG_TTY=$(tty)' ~/.bashrc; then
+    echo -e '\n# Set `GPG_TTY` for GPG (GNU Privacy Guard) passphrase handling\nexport GPG_TTY=$(tty)' >> ~/.bashrc;
+    echo '-- Added GPG_TTY environment variable to `~/.bashrc`.';
+  else
+    echo '-- GPG_TTY environment variable already present in `~/.bashrc`, skipping...';
+  fi
   source ~/.bashrc;
   echo "-- Git configuration completed. Additionally, GPG_TTY has been configured for seamless usage of GPG keys.";
 }
