@@ -4,9 +4,9 @@
 # - Upgrades Termux packages and, installs vim, git, openssh, gnupg,etc. packages.
 # - Generates an SSH key as well as a GPG key for adding them to GitHub's account.
 # - Author: Diwas Neupane (techdiwas)
-# - Version: generic:1.4
+# - Version: generic:1.5
 # - Date: 20231225
-# - Last modified: 20250606
+# - Last modified: 202508011
 #
 #        - Changes for (20230802)  - make it clear that this script is not ready.
 #        - Changes for (20230803)  - make it clear that this script is ready.
@@ -17,8 +17,20 @@
 #	 - Changes for (20250606)  - introduce email and username validation. Also, improved overall script.
 #	 - Changes for (20250701)  - set up gh for login into user's GitHub account and nano as a default editor for git.
 #        - Changes for (20250705)  - auto copy required files from internal storage for restoring purposes.
+#        - Changes for (20250811)  - edit Termux's default settings (Used for Termux Beta).
 #
 # *******************************************************************************
+
+# edit termux settings (I specifically use in Termux Beta)
+change_settings() {
+    local input;
+    echo "-- Change termux's settings ? [Y/n]"
+    read input;
+    if [ "$imput" = 'Y' ] || [ "$input" = 'y' ]; then
+        nano ~/.termux/termux.properties;
+        termux-reload-settings;
+    fi
+}
 
 # check weather we have internal storage access or not
 setup_storage() {
@@ -284,7 +296,7 @@ restore_ssh_key() {
 
 # do all the work!
 WorkNow() {
-    local SCRIPT_VERSION="20250701";
+    local SCRIPT_VERSION="20250811";
     local START=$(date);
     local STOP=$(date);
     echo "$0, v$SCRIPT_VERSION";
@@ -314,6 +326,7 @@ WorkNow() {
 	    config_gh;
             ;;
         "s")
+            change_settings;
             setup_storage;
             setup_repo;
             update_environment;
