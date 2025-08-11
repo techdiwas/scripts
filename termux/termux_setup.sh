@@ -26,7 +26,7 @@ change_settings() {
     local input;
     echo "-- Change termux's settings ? [Y/n]"
     read input;
-    if [ "$imput" = 'Y' ] || [ "$input" = 'y' ]; then
+    if [ "$input" = 'Y' ] || [ "$input" = 'y' ]; then
         nano ~/.termux/termux.properties;
         termux-reload-settings;
     fi
