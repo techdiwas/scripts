@@ -241,6 +241,10 @@ restore_gpg_key() {
   echo "-- Enter GPG key ID:";
   read gpg_key_id;
 
+  # Set up trust
+  gpg --edit-key "$gpg_key_id";
+  gpg --list-secret-keys --keyid-format=long;
+
   # configure git for signing key
   git config --global commit.gpgsign true;
   git config --global user.signingkey $gpg_key_id;
