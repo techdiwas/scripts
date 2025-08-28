@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Copyright (C) 2025 Diwas Neupane
+# SPDX-License-Identifier: Apache-2.0
+# Termux Set Up Script
+
 # *******************************************************************************
 # - Script to generate an SSH key for connection and, a GPG key for security.
 # - Upgrades Termux packages and, installs vim, git, openssh, gnupg,etc. packages.
