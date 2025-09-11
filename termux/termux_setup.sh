@@ -212,37 +212,37 @@ backup_ssh_key() {
 
 # if SSH and GPG keys are stored in GitHub repository then clone it
 clone_github_repo() {
-    local input;
-    echo "-- Clone GitHub repository for SSH and GPG key restore ? [Y/n]"
-    read input;
-    if [ "$input" = 'Y' ] || [ "$input" = 'y' ]; then
-        local github_repo_name;
-        local github_username;
-        echo "-- GitHub Username ?";
-        read github_username;
-        echo "-- GitHub Reponame ?";
-        read github_repo_name;
-        git clone https://github.com/"$github_username"/"$github_repo_name".git;
-        if [ -f $github_repo_name/id_gpg_public ] && [ -f $github_repo_name/id_gpg_private ] && [ -f $github_repo_name/gpg_ownertrust ]; then
-            cp $github_repo_name/id_gpg_public $github_repo_name/id_gpg_private $github_repo_name/gpg_ownertrust $HOME;
-            echo "-- Files copied to $HOME.";
-        else
-            echo "-- No files found in $github_repo_name.";
-            exit 1;
-        fi
-        if [ -f $github_repo_name/id_rsa ] && [ -f $github_repo_name/id_rsa.pub ]; then
-            cp $github_repo_name/id_rsa $github_repo_name/id_rsa.pub $HOME;
-            echo "-- Files copied to $HOME.";
-        elif [ -f $github_repo_name/id_ed25519 ] && [ -f $github_repo_name/id_ed25519.pub ]; then
-            cp $github_repo_name/id_ed25519 $github_repo_name/id_ed25519.pub $HOME;
-            echo "-- Files copied to $HOME.";
-        else
-            echo "-- No files found in $github_repo_name.";
-            exit 1;
-        fi
-        echo "-- Repository found and SSH and GPG keys are copied.";
-        echo "-- Now, you can successful restore SSH and GPG keys.";
+    local github_repo_name;
+    local github_username;
+
+    echo "-- GitHub Username ?";
+    read github_username;
+    echo "-- GitHub Reponame ?";
+    read github_repo_name;
+
+    git clone https://github.com/"$github_username"/"$github_repo_name".git;
+
+    if [ -f $github_repo_name/id_gpg_public ] && [ -f $github_repo_name/id_gpg_private ] && [ -f $github_repo_name/gpg_ownertrust ]; then
+        cp $github_repo_name/id_gpg_public $github_repo_name/id_gpg_private $github_repo_name/gpg_ownertrust $HOME;
+        echo "-- Files copied to $HOME.";
+    else
+        echo "-- No files found in $github_repo_name.";
+        exit 1;
     fi
+    if [ -f $github_repo_name/id_rsa ] && [ -f $github_repo_name/id_rsa.pub ]; then
+        cp $github_repo_name/id_rsa $github_repo_name/id_rsa.pub $HOME;
+        echo "-- Files copied to $HOME.";
+    elif [ -f $github_repo_name/id_ed25519 ] && [ -f $github_repo_name/id_ed25519.pub ]; then
+        cp $github_repo_name/id_ed25519 $github_repo_name/id_ed25519.pub $HOME;
+        echo "-- Files copied to $HOME.";
+    else
+        echo "-- No files found in $github_repo_name.";
+        exit 1;
+    fi
+
+    echo "-- Repository found and SSH and GPG keys are copied.";
+    echo "-- Now, you can successful restore SSH and GPG keys.";
+
     # cleanup repo
     rm -rf "$github_repo_name";
 }
