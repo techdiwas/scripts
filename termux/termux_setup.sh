@@ -9,9 +9,9 @@
 # - Upgrades Termux packages and, installs vim, git, openssh, gnupg,etc. packages.
 # - Generates an SSH key as well as a GPG key for adding them to GitHub's account.
 # - Author: Diwas Neupane (techdiwas)
-# - Version: generic:1.5
+# - Version: generic:1.6
 # - Date: 20231225
-# - Last modified: 202508011
+# - Last modified: 20250911
 #
 #        - Changes for (20230802)  - make it clear that this script is not ready.
 #        - Changes for (20230803)  - make it clear that this script is ready.
@@ -23,6 +23,7 @@
 #	 - Changes for (20250701)  - set up gh for login into user's GitHub account and nano as a default editor for git.
 #        - Changes for (20250705)  - auto copy required files from internal storage for restoring purposes.
 #        - Changes for (20250811)  - edit Termux's default settings (Used for Termux Beta).
+#        - Changes for (20250911)  - clone SSH and GPG keys from GitHub repository and perform misc changes.
 #
 # *******************************************************************************
 
@@ -88,7 +89,7 @@ check_inputs() {
 
 # update Termux's environment
 update_environment() {
-  pkg update && pkg upgrade -y;
+  pkg update -y && pkg upgrade -y;
 }
 
 # install required packages
@@ -209,11 +210,49 @@ backup_ssh_key() {
   echo "-- Back up completed.";
 }
 
+# if SSH and GPG keys are stored in GitHub repository then clone it
+clone_github_repo() {
+    local input;
+    echo "-- Clone GitHub repository for SSH and GPG key restore ? [Y/n]"
+    read input;
+    if [ "$input" = 'Y' ] || [ "$input" = 'y' ]; then
+        local github_repo_name;
+        local github_username;
+        echo "-- GitHub Username ?";
+        read github_username;
+        echo "-- GitHub Reponame ?";
+        read github_repo_name;
+        git clone https://github.com/"$github_username"/"$github_repo_name".git;
+        if [ -f $github_repo_name/id_gpg_public ] && [ -f $github_repo_name/id_gpg_private ] && [ -f $github_repo_name/gpg_ownertrust ]; then
+            cp $github_repo_name/id_gpg_public $github_repo_name/id_gpg_private $github_repo_name/gpg_ownertrust $HOME;
+            echo "-- Files copied to $HOME.";
+        else
+            echo "-- No files found in $github_repo_name.";
+            exit 1;
+        fi
+        if [ -f $github_repo_name/id_rsa ] && [ -f $github_repo_name/id_rsa.pub ]; then
+            cp $github_repo_name/id_rsa $github_repo_name/id_rsa.pub $HOME;
+            echo "-- Files copied to $HOME.";
+        elif [ -f $github_repo_name/id_ed25519 ] && [ -f $github_repo_name/id_ed25519.pub ]; then
+            cp $github_repo_name/id_ed25519 $github_repo_name/id_ed25519.pub $HOME;
+            echo "-- Files copied to $HOME.";
+        else
+            echo "-- No files found in $github_repo_name.";
+            exit 1;
+        fi
+        echo "-- Repository found and SSH and GPG keys are copied.";
+        echo "-- Now, you can successful restore SSH and GPG keys.";
+    fi
+    # cleanup repo
+    rm -rf "$github_repo_name";
+}
+
 # restore GPG key
 restore_gpg_key() {
   echo "--------------------";
   echo "-- Restoring GPG key";
   echo "--------------------";
+
   pkg update;
   # when GNU Privacy Guard (gnupg) is not installed
   if dpkg -s gnupg >/dev/null 2>&1; then
@@ -228,9 +267,10 @@ restore_gpg_key() {
   int_storage=storage/shared/Download;
   if [ -f $int_storage/id_gpg_public ] && [ -f $int_storage/id_gpg_private ] && [ -f $int_storage/gpg_ownertrust ]; then
       cp $int_storage/id_gpg_public $int_storage/id_gpg_private $int_storage/gpg_ownertrust $HOME;
-      echo "-- Files copied.";
+      echo "-- Files copied to $HOME.";
   else
       echo "-- No files found in $int_storage.";
+      exit 1;
   fi
 
   if [ -f $HOME/id_gpg_public ] && [ -f $HOME/id_gpg_private ] && [ -f $HOME/gpg_ownertrust ]; then
@@ -265,6 +305,7 @@ restore_ssh_key() {
   echo "-- Restoring SSH key";
   echo "--------------------";
 
+  pkg update;
   # when OpenSSH (Open Secure Shell) is not installed
   if dpkg -s openssh >/dev/null 2>&1; then
     echo "-- OpenSSH (Open Secure Shell) is installed.";
@@ -278,10 +319,10 @@ restore_ssh_key() {
   int_storage=storage/shared/Download;
   if [ -f $int_storage/id_rsa ] && [ -f $int_storage/id_rsa.pub ]; then
       cp $int_storage/id_rsa $int_storage/id_rsa.pub $HOME;
-      echo "-- Files copied.";
+      echo "-- Files copied to $HOME.";
   elif [ -f $int_storage/id_ed25519 ] && [ -f $int_storage/id_ed25519.pub ]; then
       cp $int_storage/id_ed25519 $int_storage/id_ed25519.pub $HOME;
-      echo "-- Files copied.";
+      echo "-- Files copied to $HOME.";
   else
       echo "-- No files found in $int_storage.";
       exit 1;
@@ -305,7 +346,7 @@ restore_ssh_key() {
 
 # do all the work!
 WorkNow() {
-    local SCRIPT_VERSION="20250811";
+    local SCRIPT_VERSION="20250911";
     local START=$(date);
     local STOP=$(date);
     echo "$0, v$SCRIPT_VERSION";
@@ -313,22 +354,26 @@ WorkNow() {
     echo "-- What do you want to do today ?";
     echo "-- Setup Termux's Environment (s).";
     echo "-- Setup Termux's Environment Plus Configure SSH And GPG Keys (ssg).";
-    echo "-- Restore SSH Key (rs).";
-    echo "-- Restore GPG Key (rg).";
-    echo "-- Backup SSH Key (bs).";
-    echo "-- Backup GPG Key (bg).";
+    echo "-- Restore from GitHub (rgit).";
+    echo "-- Restore SSH Key (rssh).";
+    echo "-- Restore GPG Key (rgpg).";
+    echo "-- Backup SSH Key (bssh).";
+    echo "-- Backup GPG Key (bgpg).";
     read answer;
     case "$answer" in
-        "bs")
+        "bssh")
             backup_ssh_key;
             ;;
-        "bg")
+        "bgpg")
             backup_gpg_key;
             ;;
-        "rs")
+        "rgit")
+            clone_github_repo;
+            ;;
+        "rssh")
             restore_ssh_key;
             ;;
-        "rg")
+        "rgpg")
             restore_gpg_key;
             config_git_for_gpg_key;
 	    config_editor;
