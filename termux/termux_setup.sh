@@ -220,6 +220,15 @@ clone_github_repo() {
     echo "-- GitHub Reponame ?";
     read github_repo_name;
 
+    pkg update;
+    # when git is not installed
+    if dpkg -s git >/dev/null 2>&1; then
+      echo "-- git is installed.";
+    else
+      echo "-- git is not installed.";
+      echo "-- Installing git...";
+      pkg install git;
+    fi
     git clone https://github.com/"$github_username"/"$github_repo_name".git;
 
     if [ -f $github_repo_name/id_gpg_public ] && [ -f $github_repo_name/id_gpg_private ] && [ -f $github_repo_name/gpg_ownertrust ]; then
