@@ -274,7 +274,10 @@ restore_gpg_key() {
 
   # assume files are in this dir. So copy them.
   int_storage=storage/shared/Download;
-  if [ -f $int_storage/id_gpg_public ] && [ -f $int_storage/id_gpg_private ] && [ -f $int_storage/gpg_ownertrust ]; then
+  # check if files are already in $HOME at first. (ref clone_github_repo)
+  if [ -f $HOME/id_gpg_public ] && [ -f $HOME/id_gpg_private ] && [ -f $HOME/gpg_ownertrust ]; then
+      echo "-- Files are in $HOME.";
+  elif [ -f $int_storage/id_gpg_public ] && [ -f $int_storage/id_gpg_private ] && [ -f $int_storage/gpg_ownertrust ]; then
       cp $int_storage/id_gpg_public $int_storage/id_gpg_private $int_storage/gpg_ownertrust $HOME;
       echo "-- Files copied to $HOME.";
   else
@@ -326,7 +329,12 @@ restore_ssh_key() {
 
   # assume files are in this dir. So copy them.
   int_storage=storage/shared/Download;
-  if [ -f $int_storage/id_rsa ] && [ -f $int_storage/id_rsa.pub ]; then
+  # check if files are already in $HOME at first. (ref clone_github_repo)
+  if [ -f $HOME/id_rsa ] && [ -f $HOME/id_rsa.pub ]; then
+      echo "-- Files are in $HOME.";
+  elif [ -f $HOME/id_ed25519 ] && [ -f $HOME/id_ed25519.pub ]; then
+      echo "-- Files are in $HOME.";
+  elif [ -f $int_storage/id_rsa ] && [ -f $int_storage/id_rsa.pub ]; then
       cp $int_storage/id_rsa $int_storage/id_rsa.pub $HOME;
       echo "-- Files copied to $HOME.";
   elif [ -f $int_storage/id_ed25519 ] && [ -f $int_storage/id_ed25519.pub ]; then
