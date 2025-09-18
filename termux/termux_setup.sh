@@ -89,7 +89,9 @@ check_inputs() {
 
 # update Termux's environment
 update_environment() {
-  pkg update -y && pkg upgrade -y;
+  pkg update;
+  DEBIAN_FRONTEND=noninteractive;
+  pkg upgrade -y;
 }
 
 # install required packages
